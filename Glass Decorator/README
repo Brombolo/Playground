@@ -1,0 +1,3 @@
+make clean && make
+
+cp obj.*/Glass ~/config/non-packaged/add-ons/decorators/

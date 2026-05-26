@@ -8,7 +8,7 @@ extern "C" DecorAddOn* instantiate_decorator_addon(image_id id, const char* name
     return new (std::nothrow) DecorAddOn(id, name);
 }
 
-extern "C" Decorator* instantiate_decorator(Desktop* desktop, BRect rect)
+extern "C" Decorator* instantiate_decorator(DesktopSettings& settings, BRect rect, Desktop* desktop)
 {
-    return new (std::nothrow) GlassDecorator(desktop, rect);
+    return new (std::nothrow) GlassDecorator(settings, rect, desktop);
 }

@@ -5,13 +5,13 @@
 
 class GlassDecorator : public DefaultDecorator {
 public:
-    GlassDecorator(Desktop* desktop, BRect rect);
+    GlassDecorator(DesktopSettings& settings, BRect rect, Desktop* desktop);
     virtual ~GlassDecorator();
 
 protected:
-    virtual void _DrawTab(BRect rect);
+    virtual void _DrawTab(Decorator::Tab* tab, BRect rect);
     virtual void _DrawFrame(BRect rect);
-    virtual void _DrawButton(BRect rect, int32 type, int32 state, bool highlighted);
+    virtual void _DrawClose(Decorator::Tab* tab, bool direct, BRect rect);
 
 private:
     rgb_color fGlassBase;
