@@ -1,17 +1,28 @@
 #ifndef GLASS_DECORATOR_H
 #define GLASS_DECORATOR_H
 
-#include "DefaultDecorator.h"
+#include <Decorator.h>
 
-class GlassDecorator : public DefaultDecorator {
+class Desktop;
+
+class GlassDecorator : public Decorator {
 public:
     GlassDecorator(DesktopSettings& settings, BRect rect, Desktop* desktop);
     virtual ~GlassDecorator();
 
+    // Metodi geometrici richiesti dalla classe base Decorator
+    virtual void                MoveBy(float x, float y);
+    virtual void                ResizeBy(float x, float y);
+    virtual bool                SetSettings(const BMessage& settings);
+    virtual bool                GetSettings(BMessage& settings) const;
+    virtual void                Draw(BRect rect);
+    virtual void                Draw();
+    virtual Region              RegionAt(BPoint where) const;
+
 protected:
-    virtual void _DrawTab(Decorator::Tab* tab, BRect rect);
-    virtual void _DrawFrame(BRect rect);
-    virtual void _DrawClose(Decorator::Tab* tab, bool direct, BRect rect);
+    // Funzioni di disegno interne per simulare il vetro
+    virtual void                _DrawTab(Decorator::Tab* tab, BRect rect);
+    virtual void                _DrawFrame(BRect rect);
 
 private:
     rgb_color fGlassBase;

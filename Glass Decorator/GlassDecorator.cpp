@@ -3,15 +3,60 @@
 #include <View.h>
 
 GlassDecorator::GlassDecorator(DesktopSettings& settings, BRect rect, Desktop* desktop)
-    : DefaultDecorator(settings, rect, desktop)
+    : Decorator(settings, rect)
 {
-    // Colore base azzurrato e semi-trasparente
+    // Colore azzurrato vetrato e semi-trasparente
     fGlassBase = (rgb_color){ 160, 200, 240, 150 }; 
     fGlassHighlight = (rgb_color){ 255, 255, 255, 210 };
     fGlassShadow = (rgb_color){ 80, 110, 150, 180 };
 }
 
 GlassDecorator::~GlassDecorator() {}
+
+void GlassDecorator::MoveBy(float x, float y)
+{
+    // Sposta i confini geometrici della finestra
+    fFrame.OffsetBy(x, y);
+}
+
+void GlassDecorator::ResizeBy(float x, float y)
+{
+    // Ridimensiona i confini geometrici della finestra
+    fFrame.right += x;
+    fFrame.bottom += y;
+}
+
+bool GlassDecorator::SetSettings(const BMessage& settings) { return false; }
+bool GlassDecorator::GetSettings(BMessage& settings) const { return false; }
+
+void GlassDecorator::Draw()
+{
+    Draw(fFrame);
+}
+
+void GlassDecorator::Draw(BRect rect)
+{
+    // Metodo principale di rendering invocato dall'app_server
+    _DrawFrame(fFrame);
+    
+    // Disegna ciascun tab associato alla finestra (Haiku supporta più tab per via dello stack)
+    for (int32 i = 0; i < CountTabs(); i++) {
+        Decorator::Tab* tab = TabAt(i);
+        if (tab != NULL) {
+            // Calcola l'area del tab corrente basandoti sulle funzioni di Haiku
+            BRect tabRect = tab->Frame();
+            _DrawTab(tab, tabRect);
+        }
+    }
+}
+
+Decorator::Region GlassDecorator::RegionAt(BPoint where) const
+{
+    // Identifica quale parte della finestra l'utente sta cliccando (Bordi, Tab, Chiusura)
+    if (fFrame.Contains(where))
+        return REGION_WINDOW;
+    return REGION_NONE;
+}
 
 void GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect rect)
 {
@@ -26,40 +71,27 @@ void GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect rect)
 
     float radius = 6.0;
     
-    // Controlliamo la posizione del Tab all'interno del gruppo "Stack & Tile"
-    // Per arrotondare solo i bordi esterni o lasciarli piatti se uniti
+    // Logica per arrotondare o squadrare i lati in base allo Stack & Tile
     if (tab->tiling == AS_TAB_LOCATION_MIDDLE) {
         fDrawingEngine->FillRect(rect, gradient);
     } else if (tab->tiling == AS_TAB_LOCATION_START) {
         fDrawingEngine->FillRoundRect(rect, radius, radius, gradient);
         BRect rightHalf = rect;
         rightHalf.left = rect.left + rect.Width() / 2;
-        fDrawingEngine->FillRect(rightHalf, gradient); // Appiattisce il lato destro di contatto
+        fDrawingEngine->FillRect(rightHalf, gradient);
     } else if (tab->tiling == AS_TAB_LOCATION_END) {
         fDrawingEngine->FillRoundRect(rect, radius, radius, gradient);
         BRect leftHalf = rect;
         leftHalf.right = rect.left + rect.Width() / 2;
-        fDrawingEngine->FillRect(leftHalf, gradient);  // Appiattisce il lato sinistro di contatto
+        fDrawingEngine->FillRect(leftHalf, gradient);
     } else {
-        // Finestra singola standard: angoli totalmente arrotondati
         fDrawingEngine->FillRoundRect(rect, radius, radius, gradient);
     }
-
-    // Richiama il disegno nativo del titolo del testo sopra il nostro vetro
-    _DrawTitle(tab, rect);
 }
 
 void GlassDecorator::_DrawFrame(BRect rect)
 {
-    // Un frame semplice effetto specchio/vetro per i bordi
     fDrawingEngine->StrokeRect(rect, fGlassHighlight);
     BRect inner = rect.InsetByCopy(1, 1);
     fDrawingEngine->StrokeRect(inner, fGlassShadow);
-}
-
-void GlassDecorator::_DrawClose(Decorator::Tab* tab, bool direct, BRect rect)
-{
-    // Esempio minimale per un bottone di chiusura personalizzato stile bolla di vetro
-    fDrawingEngine->FillEllipse(rect, fGlassBase);
-    fDrawingEngine->StrokeEllipse(rect, fGlassHighlight);
 }
