@@ -58,6 +58,7 @@ protected:
 									BRect rect);
 	virtual	void				_DrawResizeKnob(BRect r, bool full,
 									const ComponentColors& color);
+	virtual	void				_GetFootprint(BRegion* region);
 
 private:
  			void				_DrawButtonBitmap(ServerBitmap* bitmap,

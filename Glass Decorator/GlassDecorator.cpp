@@ -131,49 +131,62 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 {
 	Decorator::Tab* tab = static_cast<Decorator::Tab*>(_tab);
 
-	// Simulated Glass base colors
-	rgb_color focusCeleste = {120, 180, 235, 255};
-	rgb_color unfocusCeleste = {170, 190, 210, 255};
-	rgb_color focusFrame = {90, 150, 215, 255};
-	rgb_color unfocusFrame = {150, 170, 190, 255};
+	// --- Glass palette --------------------------------------------------
+	// These colours define the "celeste" glass look.  They intentionally
+	// ignore the system UI colour settings so the glass aesthetic is
+	// consistent regardless of the user's Appearance preferences.
+	// Alpha values are set per-component below so that solid elements
+	// (frame outlines) remain fully opaque while fills are translucent.
+	// A lower blue component will shift the glass towards grey; a higher
+	// one towards deep blue.  The alpha values in each case block control
+	// how "see-through" each part of the decorator is.
+	rgb_color focusCeleste   = {120, 185, 240, 255};
+	rgb_color unfocusCeleste = {175, 195, 215, 255};
+	rgb_color focusFrame     = { 80, 140, 210, 255};
+	rgb_color unfocusFrame   = {145, 165, 185, 255};
 
 	switch (component) {
 		case COMPONENT_TAB:
 			if (highlight != 0) {
-				_colors[COLOR_TAB_FRAME_LIGHT] = tint_color(focusCeleste, 1.0);
-				_colors[COLOR_TAB_FRAME_DARK] = tint_color(focusCeleste, 1.2);
-				_colors[COLOR_TAB] = tint_color(focusCeleste, 1.0);
-				_colors[COLOR_TAB_LIGHT] = tint_color(focusCeleste, 0.5);
-				_colors[COLOR_TAB_BEVEL] = tint_color(focusCeleste, 0.7);
-				_colors[COLOR_TAB_SHADOW] = tint_color(focusCeleste, 1.3);
-				_colors[COLOR_TAB_TEXT] = tint_color(fFocusTextColor, 0.5);
+				_colors[COLOR_TAB_FRAME_LIGHT] = focusCeleste;
+				_colors[COLOR_TAB_FRAME_DARK]  = tint_color(focusCeleste, 1.2);
+				_colors[COLOR_TAB]             = focusCeleste;
+				_colors[COLOR_TAB].alpha       = 150;
+				_colors[COLOR_TAB_LIGHT]       = tint_color(focusCeleste, 0.5);
+				_colors[COLOR_TAB_BEVEL]       = tint_color(focusCeleste, 0.7);
+				_colors[COLOR_TAB_SHADOW]      = tint_color(focusCeleste, 1.3);
+				_colors[COLOR_TAB_TEXT]         = tint_color(fFocusTextColor, 0.5);
 			}
 			else if (tab && tab->buttonFocus) {
-				_colors[COLOR_TAB_FRAME_LIGHT] = tint_color(focusCeleste, 1.0);
-				_colors[COLOR_TAB_FRAME_DARK] = tint_color(focusCeleste, 1.2);
-				_colors[COLOR_TAB] = focusCeleste;
-				_colors[COLOR_TAB_LIGHT] = tint_color(focusCeleste, 0.5);
-				_colors[COLOR_TAB_BEVEL] = tint_color(focusCeleste, 0.7);
-				_colors[COLOR_TAB_SHADOW] = tint_color(focusCeleste, 1.3);
-				_colors[COLOR_TAB_TEXT] = fFocusTextColor;
+				_colors[COLOR_TAB_FRAME_LIGHT] = focusCeleste;
+				_colors[COLOR_TAB_FRAME_DARK]  = tint_color(focusCeleste, 1.2);
+				_colors[COLOR_TAB]             = focusCeleste;
+				_colors[COLOR_TAB].alpha       = 150;
+				_colors[COLOR_TAB_LIGHT]       = tint_color(focusCeleste, 0.5);
+				_colors[COLOR_TAB_BEVEL]       = tint_color(focusCeleste, 0.7);
+				_colors[COLOR_TAB_SHADOW]      = tint_color(focusCeleste, 1.3);
+				_colors[COLOR_TAB_TEXT]         = fFocusTextColor;
 			} else {
-				_colors[COLOR_TAB_FRAME_LIGHT] = tint_color(unfocusCeleste, 1.0);
-				_colors[COLOR_TAB_FRAME_DARK] = tint_color(unfocusCeleste, 1.2);
-				_colors[COLOR_TAB] = unfocusCeleste;
-				_colors[COLOR_TAB_LIGHT] = tint_color(unfocusCeleste, 0.5);
-				_colors[COLOR_TAB_BEVEL] = tint_color(unfocusCeleste, 0.7);
-				_colors[COLOR_TAB_SHADOW] = tint_color(unfocusCeleste, 1.3);
-				_colors[COLOR_TAB_TEXT] = fNonFocusTextColor;
+				_colors[COLOR_TAB_FRAME_LIGHT] = unfocusCeleste;
+				_colors[COLOR_TAB_FRAME_DARK]  = tint_color(unfocusCeleste, 1.2);
+				_colors[COLOR_TAB]             = unfocusCeleste;
+				_colors[COLOR_TAB].alpha       = 120;
+				_colors[COLOR_TAB_LIGHT]       = tint_color(unfocusCeleste, 0.5);
+				_colors[COLOR_TAB_BEVEL]       = tint_color(unfocusCeleste, 0.7);
+				_colors[COLOR_TAB_SHADOW]      = tint_color(unfocusCeleste, 1.3);
+				_colors[COLOR_TAB_TEXT]         = fNonFocusTextColor;
 			}
 			break;
 
 		case COMPONENT_CLOSE_BUTTON:
 		case COMPONENT_ZOOM_BUTTON:
 			if (highlight != 0 || (tab && tab->buttonFocus)) {
-				_colors[COLOR_BUTTON] = focusCeleste;
+				_colors[COLOR_BUTTON]       = focusCeleste;
+				_colors[COLOR_BUTTON].alpha = 160;
 				_colors[COLOR_BUTTON_LIGHT] = tint_color(focusCeleste, 0.5);
 			} else {
-				_colors[COLOR_BUTTON] = unfocusCeleste;
+				_colors[COLOR_BUTTON]       = unfocusCeleste;
+				_colors[COLOR_BUTTON].alpha = 130;
 				_colors[COLOR_BUTTON_LIGHT] = tint_color(unfocusCeleste, 0.5);
 			}
 			break;
@@ -181,16 +194,16 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 		case COMPONENT_TOP_BORDER:
 			if (tab && tab->buttonFocus) {
 				_colors[0] = tint_color(focusCeleste, 1.2); 
-				_colors[1] = tint_color(focusCeleste, 1.0); 
-				_colors[2] = tint_color(focusCeleste, 1.0); 
-				_colors[3] = tint_color(focusCeleste, 1.0); 
+				_colors[1] = focusCeleste;  _colors[1].alpha = 140;
+				_colors[2] = focusCeleste;  _colors[2].alpha = 140;
+				_colors[3] = focusCeleste;  _colors[3].alpha = 140;
 				_colors[4] = tint_color(focusFrame, 1.1); 
 				_colors[5] = tint_color(focusFrame, 1.1); 
 			} else {
 				_colors[0] = tint_color(unfocusCeleste, 1.2); 
-				_colors[1] = tint_color(unfocusCeleste, B_NO_TINT);
-				_colors[2] = tint_color(unfocusCeleste, B_NO_TINT);
-				_colors[3] = tint_color(unfocusCeleste, B_NO_TINT);
+				_colors[1] = unfocusCeleste;  _colors[1].alpha = 120;
+				_colors[2] = unfocusCeleste;  _colors[2].alpha = 120;
+				_colors[3] = unfocusCeleste;  _colors[3].alpha = 120;
 				_colors[4] = tint_color(unfocusFrame, 1.1); 
 				_colors[5] = tint_color(unfocusFrame, 1.1); 
 			}
@@ -210,19 +223,19 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 		{
 			if (tab && tab->buttonFocus) {
 				_colors[0] = tint_color(focusFrame, 1.2);
-				_colors[1] = tint_color(focusFrame, B_NO_TINT);
-				_colors[2] = tint_color(focusFrame, B_NO_TINT);
-				_colors[3] = tint_color(focusFrame, B_NO_TINT);
+				_colors[1] = focusFrame;  _colors[1].alpha = 140;
+				_colors[2] = focusFrame;  _colors[2].alpha = 140;
+				_colors[3] = focusFrame;  _colors[3].alpha = 140;
 				_colors[4] = tint_color(focusFrame, 1.05); 
 				_colors[5] = tint_color(focusFrame, 1.1); 
 				_colors[6] = tint_color(focusCeleste, 1.2); 
 			} else {
 				_colors[0] = tint_color(unfocusFrame, 1.25);
-				_colors[1] = tint_color(unfocusFrame, B_NO_TINT);
-				_colors[2] = tint_color(unfocusFrame, B_NO_TINT);
-				_colors[3] = tint_color(unfocusFrame, B_NO_TINT);
+				_colors[1] = unfocusFrame;  _colors[1].alpha = 120;
+				_colors[2] = unfocusFrame;  _colors[2].alpha = 120;
+				_colors[3] = unfocusFrame;  _colors[3].alpha = 120;
 				_colors[4] = tint_color(unfocusFrame, 1.05); 
-				_colors[5] = tint_color(focusFrame, 1.3); 
+				_colors[5] = tint_color(unfocusFrame, 1.3); 
 				_colors[6] = tint_color(unfocusCeleste, 1.2); 
 			}
 
@@ -246,6 +259,53 @@ GlassDecorator::UpdateColors(DesktopSettings& settings)
 }
 
 
+/*!	Calculate the decorator's footprint.
+	We override this method to exclude the rounded corners of all tabs from the footprint.
+	This tells the app_server that these pixels are transparent and do not belong
+	to the window, so the desktop wallpaper or windows behind will show through.
+	This approach is safe, stable, and avoids any dynamic ConstrainClippingRegion crashes.
+*/
+void
+GlassDecorator::_GetFootprint(BRegion* region)
+{
+	if (region == NULL)
+		return;
+
+	// First calculate the standard footprint using the parent class method
+	TabDecorator::_GetFootprint(region);
+
+	if (fTopTab->look == B_NO_BORDER_WINDOW_LOOK || fTopTab->look == B_BORDERED_WINDOW_LOOK)
+		return;
+
+	// Exclude the rounded corners from the footprint for each tab to make them transparent
+	for (int32 i = 0; i < fTabList.CountItems(); i++) {
+		Decorator::Tab* tab = fTabList.ItemAt(i);
+		if (tab == NULL)
+			continue;
+
+		const BRect& tabRect = tab->tabRect;
+		if (!tabRect.IsValid())
+			continue;
+
+		bool roundLeft  = (i == 0);
+		bool roundRight = (i == fTabList.CountItems() - 1);
+
+		if (roundLeft) {
+			// Top-left corner: exclude 3x3 triangle of pixels
+			region->Exclude(BRect(tabRect.left, tabRect.top, tabRect.left + 2, tabRect.top));
+			region->Exclude(BRect(tabRect.left, tabRect.top + 1, tabRect.left + 1, tabRect.top + 1));
+			region->Exclude(BRect(tabRect.left, tabRect.top + 2, tabRect.left, tabRect.top + 2));
+		}
+		if (roundRight) {
+			// Top-right corner: exclude 3x3 triangle of pixels
+			region->Exclude(BRect(tabRect.right - 2, tabRect.top, tabRect.right, tabRect.top));
+			region->Exclude(BRect(tabRect.right - 1, tabRect.top + 1, tabRect.right, tabRect.top + 1));
+			region->Exclude(BRect(tabRect.right, tabRect.top + 2, tabRect.right, tabRect.top + 2));
+		}
+	}
+}
+
+
 // #pragma mark - Protected methods
 
 
@@ -263,6 +323,14 @@ GlassDecorator::_DrawFrame(BRect rect)
 
 	if (fBorderWidth <= 0)
 		return;
+
+	// Enable alpha blending for the entire frame drawing.
+	// This lets every border line that carries an alpha channel in its
+	// rgb_color blend with whatever is already in the framebuffer,
+	// producing the characteristic glass translucency.
+	drawing_mode oldMode;
+	fDrawingEngine->SetDrawingMode(B_OP_ALPHA, oldMode);
+	fDrawingEngine->SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
 
 	// TODO: While this works, it does not look so crisp at higher resolutions.
 #define COLORS_INDEX(i, borderWidth, nominalLimit) int32((float(i) / float(borderWidth)) * nominalLimit)
@@ -289,6 +357,13 @@ GlassDecorator::_DrawFrame(BRect rect)
 				// redraw line to be part of tab title
 				fDrawingEngine->StrokeLine(BPoint(r.left, r.top),
 					BPoint(r.left, r.top + 4), colors[6]);
+
+				// GLASS: inner white edge highlight on the left border
+				rgb_color glassHighlight = {255, 255, 255, 80};
+				fDrawingEngine->StrokeLine(
+					BPoint(r.left + 1, r.top + 1),
+					BPoint(r.left + 1, r.bottom - 1),
+					glassHighlight);
 			}
 			// bottom
 			if (rect.Intersects(fBottomBorder)) {
@@ -347,6 +422,13 @@ GlassDecorator::_DrawFrame(BRect rect)
 						}
 					}
 				}
+
+				// GLASS: inner white edge highlight on the top border
+				rgb_color glassHighlight = {255, 255, 255, 80};
+				fDrawingEngine->StrokeLine(
+					BPoint(r.left + 1, r.top + 1),
+					BPoint(r.right - 1, r.top + 1),
+					glassHighlight);
 			}
 			break;
 		}
@@ -445,6 +527,9 @@ GlassDecorator::_DrawFrame(BRect rect)
 			// don't draw a border frame
 			break;
 	}
+
+	// Restore the previous drawing mode.
+	fDrawingEngine->SetDrawingMode(oldMode); 
 
 	// Draw the resize knob if we're supposed to
 	if (!(fTopTab->flags & B_NOT_RESIZABLE)) {
@@ -567,6 +652,11 @@ GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
 	ComponentColors colors;
 	_GetComponentColors(COMPONENT_TAB, colors, tab);
 
+	// GLASS: Enable alpha blending for translucent tab drawing
+	drawing_mode oldMode;
+	fDrawingEngine->SetDrawingMode(B_OP_ALPHA, oldMode);
+	fDrawingEngine->SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
+
 	bool roundLeft = (fTabList.IndexOf(tab) == 0);
 	bool roundRight = (fTabList.IndexOf(tab) == fTabList.CountItems() - 1);
 
@@ -591,7 +681,7 @@ GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
 				colors[COLOR_TAB_FRAME_DARK]);
 		} else {
 			fDrawingEngine->StrokeLine(tabRect.LeftBottom(),
-				tabRect.RightBottom(), fFocusFrameColor);
+				tabRect.RightBottom(), colors[COLOR_TAB_FRAME_DARK]);
 		}
 	} else {
 		// outer frame
@@ -611,7 +701,7 @@ GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
 				colors[COLOR_TAB_FRAME_DARK]);
 		} else {
 			fDrawingEngine->StrokeLine(tabRect.LeftBottom(),
-				tabRect.RightBottom(), fFocusFrameColor);
+				tabRect.RightBottom(), colors[COLOR_TAB_FRAME_DARK]);
 		}
 	}
 
@@ -627,7 +717,7 @@ GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
 	fDrawingEngine->StrokeLine(BPoint(tabRect.left + 1 + leftOffset, tabRect.top + 1),
 		BPoint(tabRect.right - 1 - rightOffset,
 			tabRect.top + 1),
-		tint_color(colors[COLOR_TAB], 0.9));
+		colors[COLOR_TAB]);
 
 	if (roundLeft) {
 		fDrawingEngine->StrokePoint(BPoint(tabRect.left + 2, tabRect.top + 2), colors[COLOR_TAB]);
@@ -692,6 +782,9 @@ GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
 		fDrawingEngine->StrokeLine(BPoint(tabRect.right - 1, tabRect.top + 1), BPoint(tabRect.right, tabRect.top + 1), B_TRANSPARENT_COLOR);
 		fDrawingEngine->StrokePoint(BPoint(tabRect.right, tabRect.top + 2), B_TRANSPARENT_COLOR);
 	}
+
+	// GLASS: Restore drawing mode before drawing text and buttons
+	fDrawingEngine->SetDrawingMode(oldMode);
 
 	_DrawTitle(tab, tabRect);
 
@@ -853,21 +946,31 @@ GlassDecorator::_DrawBlendedRect(DrawingEngine* engine, const BRect rect,
 {
 	rgb_color darkColor = tint_color(colors[COLOR_BUTTON], 1.3);
 	rgb_color lightColor = tint_color(colors[COLOR_BUTTON], 0.7);
-	rgb_color fillColor = tint_color(colors[COLOR_BUTTON], 0.9);
+	rgb_color fillColor = colors[COLOR_BUTTON];
 
 	if (down) {
 		darkColor = tint_color(colors[COLOR_BUTTON], 1.45);
 		lightColor = tint_color(colors[COLOR_BUTTON], 0.85);
 		fillColor = tint_color(colors[COLOR_BUTTON], 1.1);
+		fillColor.alpha = colors[COLOR_BUTTON].alpha;
 	}
+
+	// Enable alpha blending for translucent button fills
+	drawing_mode oldMode;
+	engine->SetDrawingMode(B_OP_ALPHA, oldMode);
+	engine->SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
 
 	engine->FillRect(rect, fillColor);
 
-	// outline engraved (inset bevel)
+	// Engraved outline — shadow on top/left, highlight on bottom/right
 	engine->StrokeLine(rect.LeftTop(), rect.RightTop(), darkColor);
 	engine->StrokeLine(rect.LeftTop(), rect.LeftBottom(), darkColor);
-	engine->StrokeLine(BPoint(rect.right, rect.top + 1), rect.RightBottom(), lightColor);
-	engine->StrokeLine(BPoint(rect.left + 1, rect.bottom), rect.RightBottom(), lightColor);
+	engine->StrokeLine(BPoint(rect.right, rect.top + 1),
+		rect.RightBottom(), lightColor);
+	engine->StrokeLine(BPoint(rect.left + 1, rect.bottom),
+		rect.RightBottom(), lightColor);
+
+	engine->SetDrawingMode(oldMode);
 }
 
 
