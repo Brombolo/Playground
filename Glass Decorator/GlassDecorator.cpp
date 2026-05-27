@@ -131,15 +131,16 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 {
 	Decorator::Tab* tab = static_cast<Decorator::Tab*>(_tab);
 
-	// --- Glass palette --------------------------------------------------
+	// --- Glass palette (Simulated Glass / Aero Basic) -------------------
 	// These colours define the "celeste" glass look.  They intentionally
 	// ignore the system UI colour settings so the glass aesthetic is
 	// consistent regardless of the user's Appearance preferences.
-	// Alpha values are set per-component below so that solid elements
-	// (frame outlines) remain fully opaque while fills are translucent.
-	// A lower blue component will shift the glass towards grey; a higher
-	// one towards deep blue.  The alpha values in each case block control
-	// how "see-through" each part of the decorator is.
+	// NOTE: All colours are fully opaque (alpha 255).  Haiku does not
+	// have a compositing window manager, so real alpha transparency in
+	// the decorator would blend against stale framebuffer content and
+	// produce visual artefacts.  The glass illusion is achieved entirely
+	// through carefully chosen light-blue tones and multi-stop gradients
+	// that simulate the reflections and depth of frosted glass.
 	rgb_color focusCeleste   = {120, 185, 240, 255};
 	rgb_color unfocusCeleste = {175, 195, 215, 255};
 	rgb_color focusFrame     = { 80, 140, 210, 255};
@@ -151,7 +152,6 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 				_colors[COLOR_TAB_FRAME_LIGHT] = focusCeleste;
 				_colors[COLOR_TAB_FRAME_DARK]  = tint_color(focusCeleste, 1.2);
 				_colors[COLOR_TAB]             = focusCeleste;
-				_colors[COLOR_TAB].alpha       = 150;
 				_colors[COLOR_TAB_LIGHT]       = tint_color(focusCeleste, 0.5);
 				_colors[COLOR_TAB_BEVEL]       = tint_color(focusCeleste, 0.7);
 				_colors[COLOR_TAB_SHADOW]      = tint_color(focusCeleste, 1.3);
@@ -161,7 +161,6 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 				_colors[COLOR_TAB_FRAME_LIGHT] = focusCeleste;
 				_colors[COLOR_TAB_FRAME_DARK]  = tint_color(focusCeleste, 1.2);
 				_colors[COLOR_TAB]             = focusCeleste;
-				_colors[COLOR_TAB].alpha       = 150;
 				_colors[COLOR_TAB_LIGHT]       = tint_color(focusCeleste, 0.5);
 				_colors[COLOR_TAB_BEVEL]       = tint_color(focusCeleste, 0.7);
 				_colors[COLOR_TAB_SHADOW]      = tint_color(focusCeleste, 1.3);
@@ -170,7 +169,6 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 				_colors[COLOR_TAB_FRAME_LIGHT] = unfocusCeleste;
 				_colors[COLOR_TAB_FRAME_DARK]  = tint_color(unfocusCeleste, 1.2);
 				_colors[COLOR_TAB]             = unfocusCeleste;
-				_colors[COLOR_TAB].alpha       = 120;
 				_colors[COLOR_TAB_LIGHT]       = tint_color(unfocusCeleste, 0.5);
 				_colors[COLOR_TAB_BEVEL]       = tint_color(unfocusCeleste, 0.7);
 				_colors[COLOR_TAB_SHADOW]      = tint_color(unfocusCeleste, 1.3);
@@ -182,30 +180,28 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 		case COMPONENT_ZOOM_BUTTON:
 			if (highlight != 0 || (tab && tab->buttonFocus)) {
 				_colors[COLOR_BUTTON]       = focusCeleste;
-				_colors[COLOR_BUTTON].alpha = 160;
 				_colors[COLOR_BUTTON_LIGHT] = tint_color(focusCeleste, 0.5);
 			} else {
 				_colors[COLOR_BUTTON]       = unfocusCeleste;
-				_colors[COLOR_BUTTON].alpha = 130;
 				_colors[COLOR_BUTTON_LIGHT] = tint_color(unfocusCeleste, 0.5);
 			}
 			break;
 
 		case COMPONENT_TOP_BORDER:
 			if (tab && tab->buttonFocus) {
-				_colors[0] = tint_color(focusCeleste, 1.2); 
-				_colors[1] = focusCeleste;  _colors[1].alpha = 140;
-				_colors[2] = focusCeleste;  _colors[2].alpha = 140;
-				_colors[3] = focusCeleste;  _colors[3].alpha = 140;
-				_colors[4] = tint_color(focusFrame, 1.1); 
-				_colors[5] = tint_color(focusFrame, 1.1); 
+				_colors[0] = tint_color(focusCeleste, 1.2);
+				_colors[1] = tint_color(focusCeleste, 1.0);
+				_colors[2] = tint_color(focusCeleste, 1.0);
+				_colors[3] = tint_color(focusCeleste, 1.0);
+				_colors[4] = tint_color(focusFrame, 1.1);
+				_colors[5] = tint_color(focusFrame, 1.1);
 			} else {
-				_colors[0] = tint_color(unfocusCeleste, 1.2); 
-				_colors[1] = unfocusCeleste;  _colors[1].alpha = 120;
-				_colors[2] = unfocusCeleste;  _colors[2].alpha = 120;
-				_colors[3] = unfocusCeleste;  _colors[3].alpha = 120;
-				_colors[4] = tint_color(unfocusFrame, 1.1); 
-				_colors[5] = tint_color(unfocusFrame, 1.1); 
+				_colors[0] = tint_color(unfocusCeleste, 1.2);
+				_colors[1] = tint_color(unfocusCeleste, B_NO_TINT);
+				_colors[2] = tint_color(unfocusCeleste, B_NO_TINT);
+				_colors[3] = tint_color(unfocusCeleste, B_NO_TINT);
+				_colors[4] = tint_color(unfocusFrame, 1.1);
+				_colors[5] = tint_color(unfocusFrame, 1.1);
 			}
 			if (highlight == HIGHLIGHT_RESIZE_BORDER) {
 				for (int32 i = 0; i < 6; i++) {
@@ -223,19 +219,19 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 		{
 			if (tab && tab->buttonFocus) {
 				_colors[0] = tint_color(focusFrame, 1.2);
-				_colors[1] = focusFrame;  _colors[1].alpha = 140;
-				_colors[2] = focusFrame;  _colors[2].alpha = 140;
-				_colors[3] = focusFrame;  _colors[3].alpha = 140;
-				_colors[4] = tint_color(focusFrame, 1.05); 
-				_colors[5] = tint_color(focusFrame, 1.1); 
-				_colors[6] = tint_color(focusCeleste, 1.2); 
+				_colors[1] = tint_color(focusFrame, B_NO_TINT);
+				_colors[2] = tint_color(focusFrame, B_NO_TINT);
+				_colors[3] = tint_color(focusFrame, B_NO_TINT);
+				_colors[4] = tint_color(focusFrame, 1.05);
+				_colors[5] = tint_color(focusFrame, 1.1);
+				_colors[6] = tint_color(focusCeleste, 1.2);
 			} else {
 				_colors[0] = tint_color(unfocusFrame, 1.25);
-				_colors[1] = unfocusFrame;  _colors[1].alpha = 120;
-				_colors[2] = unfocusFrame;  _colors[2].alpha = 120;
-				_colors[3] = unfocusFrame;  _colors[3].alpha = 120;
-				_colors[4] = tint_color(unfocusFrame, 1.05); 
-				_colors[5] = tint_color(unfocusFrame, 1.3); 
+				_colors[1] = tint_color(unfocusFrame, B_NO_TINT);
+				_colors[2] = tint_color(unfocusFrame, B_NO_TINT);
+				_colors[3] = tint_color(unfocusFrame, B_NO_TINT);
+				_colors[4] = tint_color(unfocusFrame, 1.05);
+				_colors[5] = tint_color(unfocusFrame, 1.3);
 				_colors[6] = tint_color(unfocusCeleste, 1.2); 
 			}
 
@@ -324,13 +320,9 @@ GlassDecorator::_DrawFrame(BRect rect)
 	if (fBorderWidth <= 0)
 		return;
 
-	// Enable alpha blending for the entire frame drawing.
-	// This lets every border line that carries an alpha channel in its
-	// rgb_color blend with whatever is already in the framebuffer,
-	// producing the characteristic glass translucency.
-	drawing_mode oldMode;
-	fDrawingEngine->SetDrawingMode(B_OP_ALPHA, oldMode);
-	fDrawingEngine->SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
+	// NOTE: No alpha blending here — Haiku has no compositor, so
+	// B_OP_ALPHA against the framebuffer produces artefacts.
+	// The glass look is achieved through opaque colour choices.
 
 	// TODO: While this works, it does not look so crisp at higher resolutions.
 #define COLORS_INDEX(i, borderWidth, nominalLimit) int32((float(i) / float(borderWidth)) * nominalLimit)
@@ -358,8 +350,9 @@ GlassDecorator::_DrawFrame(BRect rect)
 				fDrawingEngine->StrokeLine(BPoint(r.left, r.top),
 					BPoint(r.left, r.top + 4), colors[6]);
 
-				// GLASS: inner white edge highlight on the left border
-				rgb_color glassHighlight = {255, 255, 255, 80};
+				// GLASS: inner light edge highlight on the left border
+				// Uses an opaque very light blue to simulate a glass edge
+				rgb_color glassHighlight = {200, 220, 245, 255};
 				fDrawingEngine->StrokeLine(
 					BPoint(r.left + 1, r.top + 1),
 					BPoint(r.left + 1, r.bottom - 1),
@@ -423,8 +416,8 @@ GlassDecorator::_DrawFrame(BRect rect)
 					}
 				}
 
-				// GLASS: inner white edge highlight on the top border
-				rgb_color glassHighlight = {255, 255, 255, 80};
+				// GLASS: inner light edge highlight on the top border
+				rgb_color glassHighlight = {200, 220, 245, 255};
 				fDrawingEngine->StrokeLine(
 					BPoint(r.left + 1, r.top + 1),
 					BPoint(r.right - 1, r.top + 1),
@@ -528,8 +521,7 @@ GlassDecorator::_DrawFrame(BRect rect)
 			break;
 	}
 
-	// Restore the previous drawing mode.
-	fDrawingEngine->SetDrawingMode(oldMode); 
+	// (No drawing mode to restore — we use the default B_OP_COPY) 
 
 	// Draw the resize knob if we're supposed to
 	if (!(fTopTab->flags & B_NOT_RESIZABLE)) {
@@ -652,10 +644,9 @@ GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
 	ComponentColors colors;
 	_GetComponentColors(COMPONENT_TAB, colors, tab);
 
-	// GLASS: Enable alpha blending for translucent tab drawing
-	drawing_mode oldMode;
-	fDrawingEngine->SetDrawingMode(B_OP_ALPHA, oldMode);
-	fDrawingEngine->SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
+	// NOTE: No alpha blending — the glass look is simulated entirely
+	// with opaque gradients.  Haiku lacks a compositor, so B_OP_ALPHA
+	// would blend against stale framebuffer content causing artefacts.
 
 	bool roundLeft = (fTabList.IndexOf(tab) == 0);
 	bool roundRight = (fTabList.IndexOf(tab) == fTabList.CountItems() - 1);
@@ -783,8 +774,7 @@ GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
 		fDrawingEngine->StrokePoint(BPoint(tabRect.right, tabRect.top + 2), B_TRANSPARENT_COLOR);
 	}
 
-	// GLASS: Restore drawing mode before drawing text and buttons
-	fDrawingEngine->SetDrawingMode(oldMode);
+	// (No drawing mode to restore — we use the default B_OP_COPY)
 
 	_DrawTitle(tab, tabRect);
 
@@ -944,22 +934,17 @@ void
 GlassDecorator::_DrawBlendedRect(DrawingEngine* engine, const BRect rect,
 	bool down, const ComponentColors& colors)
 {
-	rgb_color darkColor = tint_color(colors[COLOR_BUTTON], 1.3);
+	rgb_color darkColor  = tint_color(colors[COLOR_BUTTON], 1.3);
 	rgb_color lightColor = tint_color(colors[COLOR_BUTTON], 0.7);
-	rgb_color fillColor = colors[COLOR_BUTTON];
+	rgb_color fillColor  = tint_color(colors[COLOR_BUTTON], 0.9);
 
 	if (down) {
-		darkColor = tint_color(colors[COLOR_BUTTON], 1.45);
+		darkColor  = tint_color(colors[COLOR_BUTTON], 1.45);
 		lightColor = tint_color(colors[COLOR_BUTTON], 0.85);
-		fillColor = tint_color(colors[COLOR_BUTTON], 1.1);
-		fillColor.alpha = colors[COLOR_BUTTON].alpha;
+		fillColor  = tint_color(colors[COLOR_BUTTON], 1.1);
 	}
 
-	// Enable alpha blending for translucent button fills
-	drawing_mode oldMode;
-	engine->SetDrawingMode(B_OP_ALPHA, oldMode);
-	engine->SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
-
+	// No alpha blending — fully opaque button fills
 	engine->FillRect(rect, fillColor);
 
 	// Engraved outline — shadow on top/left, highlight on bottom/right
@@ -969,8 +954,6 @@ GlassDecorator::_DrawBlendedRect(DrawingEngine* engine, const BRect rect,
 		rect.RightBottom(), lightColor);
 	engine->StrokeLine(BPoint(rect.left + 1, rect.bottom),
 		rect.RightBottom(), lightColor);
-
-	engine->SetDrawingMode(oldMode);
 }
 
 
