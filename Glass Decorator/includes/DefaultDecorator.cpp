@@ -10,16 +10,16 @@
  *		John Scipione, jscipione@gmail.com
  *		Ingo Weinhold, ingo_weinhold@gmx.de
  *		Clemens Zeidler, haiku@clemens-zeidler.de
- *		Joseph Groover <looncraz@looncraz.net>
- *		Nahuel Tello <nhtello@unarix.com.ar>
- *		Brombolo
+ *		Joseph Groover, looncraz@looncraz.net
+ *		Tri-Edge AI
+ *		Jacob Secunda, secundja@gmail.com
  */
 
 
-/*!	Glass decorator for dark mode theme */
+/*!	Default and fallback decorator for the app_server - the yellow tabs */
 
 
-#include "GlassDecorator.h"
+#include "DefaultDecorator.h"
 
 #include <algorithm>
 #include <cmath>
@@ -52,25 +52,6 @@
 #endif
 
 
-static const float kBorderResizeLength = 22.0;
-
-
-GlassDecorAddOn::GlassDecorAddOn(image_id id, const char* name)
-	:
-	DecorAddOn(id, name)
-{
-}
-
-
-Decorator*
-GlassDecorAddOn::_AllocateDecorator(DesktopSettings& settings, BRect rect,
-	Desktop* desktop)
-{
-	return new (std::nothrow)GlassDecorator(settings, rect, desktop);
-}
-
-
-
 static inline uint8
 blend_color_value(uint8 a, uint8 b, float position)
 {
@@ -90,7 +71,7 @@ blend_color_value(uint8 a, uint8 b, float position)
 
 // TODO: get rid of DesktopSettings here, and introduce private accessor
 //	methods to the Decorator base class
-GlassDecorator::GlassDecorator(DesktopSettings& settings, BRect rect,
+DefaultDecorator::DefaultDecorator(DesktopSettings& settings, BRect rect,
 	Desktop* desktop)
 	:
 	TabDecorator(settings, rect, desktop)
@@ -98,15 +79,15 @@ GlassDecorator::GlassDecorator(DesktopSettings& settings, BRect rect,
 	// TODO: If the decorator was created with a frame too small, it should
 	// resize itself!
 
-	STRACE(("GlassDecorator:\n"));
+	STRACE(("DefaultDecorator:\n"));
 	STRACE(("\tFrame (%.1f,%.1f,%.1f,%.1f)\n",
 		rect.left, rect.top, rect.right, rect.bottom));
 }
 
 
-GlassDecorator::~GlassDecorator()
+DefaultDecorator::~DefaultDecorator()
 {
-	STRACE(("GlassDecorator: ~GlassDecorator()\n"));
+	STRACE(("DefaultDecorator: ~DefaultDecorator()\n"));
 }
 
 
@@ -123,28 +104,17 @@ GlassDecorator::~GlassDecorator()
 	\param colors An array of colors to be initialized by the function.
 */
 void
-GlassDecorator::GetComponentColors(Component component, uint8 highlight,
+DefaultDecorator::GetComponentColors(Component component, uint8 highlight,
 	ComponentColors _colors, Decorator::Tab* _tab)
 {
 	Decorator::Tab* tab = static_cast<Decorator::Tab*>(_tab);
 	switch (component) {
 		case COMPONENT_TAB:
-			if (highlight != 0) {
+			if (tab && tab->buttonFocus) {
 				_colors[COLOR_TAB_FRAME_LIGHT]
-					= tint_color(fFocusTabColor, 1.0);
+					= tint_color(fFocusFrameColor, B_DARKEN_2_TINT);
 				_colors[COLOR_TAB_FRAME_DARK]
-					= tint_color(fFocusTabColor, 1.2);
-				_colors[COLOR_TAB] = tint_color(fFocusTabColor, 1.0);
-				_colors[COLOR_TAB_LIGHT] = fFocusTabColorLight;
-				_colors[COLOR_TAB_BEVEL] = fFocusTabColorBevel;
-				_colors[COLOR_TAB_SHADOW] = fFocusTabColorShadow;
-				_colors[COLOR_TAB_TEXT] = tint_color(fFocusTextColor, 0.5);
-			}
-			else if (tab && tab->buttonFocus) {
-				_colors[COLOR_TAB_FRAME_LIGHT]
-					= tint_color(fFocusTabColor, 1.0);
-				_colors[COLOR_TAB_FRAME_DARK]
-					= tint_color(fFocusTabColor, 1.2);
+					= tint_color(fFocusFrameColor, B_DARKEN_3_TINT);
 				_colors[COLOR_TAB] = fFocusTabColor;
 				_colors[COLOR_TAB_LIGHT] = fFocusTabColorLight;
 				_colors[COLOR_TAB_BEVEL] = fFocusTabColorBevel;
@@ -152,9 +122,9 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 				_colors[COLOR_TAB_TEXT] = fFocusTextColor;
 			} else {
 				_colors[COLOR_TAB_FRAME_LIGHT]
-					= tint_color(fNonFocusTabColor, 1.0);
+					= tint_color(fNonFocusFrameColor, B_DARKEN_2_TINT);
 				_colors[COLOR_TAB_FRAME_DARK]
-					= tint_color(fNonFocusTabColor, 1.2);
+					= tint_color(fNonFocusFrameColor, B_DARKEN_3_TINT);
 				_colors[COLOR_TAB] = fNonFocusTabColor;
 				_colors[COLOR_TAB_LIGHT] = fNonFocusTabColorLight;
 				_colors[COLOR_TAB_BEVEL] = fNonFocusTabColorBevel;
@@ -165,11 +135,7 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 
 		case COMPONENT_CLOSE_BUTTON:
 		case COMPONENT_ZOOM_BUTTON:
-			if (highlight != 0) {
-				_colors[COLOR_BUTTON] = fFocusTabColor;
-				_colors[COLOR_BUTTON_LIGHT] = fFocusTabColorLight;
-			}
-			else if (tab && tab->buttonFocus) {
+			if (tab && tab->buttonFocus) {
 				_colors[COLOR_BUTTON] = fFocusTabColor;
 				_colors[COLOR_BUTTON_LIGHT] = fFocusTabColorLight;
 			} else {
@@ -178,81 +144,45 @@ GlassDecorator::GetComponentColors(Component component, uint8 highlight,
 			}
 			break;
 
-		case COMPONENT_TOP_BORDER:
-			if (tab && tab->buttonFocus) {
-				_colors[0] = tint_color(fFocusTabColor, 1.2); // borde exterior
-				_colors[1] = tint_color(fFocusTabColor, 1.0); // borde top
-				_colors[2] = tint_color(fFocusTabColor, 1.0); // borde top
-				_colors[3] = tint_color(fFocusTabColor, 1.0); // borde top
-				_colors[4] = tint_color(fFocusFrameColor, 1.1); // borde interior
-				_colors[5] = tint_color(fFocusFrameColor, 1.1); // borde menu 1
-			} else {
-				_colors[0] = tint_color(fNonFocusTabColor, 1.2); // borde exterior
-				_colors[1] = tint_color(fNonFocusTabColor, B_NO_TINT);
-				_colors[2] = tint_color(fNonFocusTabColor, B_NO_TINT);
-				_colors[3] = tint_color(fNonFocusTabColor, B_NO_TINT);
-				_colors[4] = tint_color(fNonFocusFrameColor, 1.1); // borde interior
-				_colors[5] = tint_color(fNonFocusFrameColor, 1.1); // borde menu 1
-			}
-			// for the resize-border highlight dye everything bluish.
-			if (highlight == HIGHLIGHT_RESIZE_BORDER) {
-				for (int32 i = 0; i < 6; i++) {
-					_colors[i].red = 150;
-					_colors[i].green = 150;
-					_colors[i].blue = 255;
-				}
-			}
-			break;
-		case COMPONENT_RESIZE_CORNER:
 		case COMPONENT_LEFT_BORDER:
 		case COMPONENT_RIGHT_BORDER:
+		case COMPONENT_TOP_BORDER:
 		case COMPONENT_BOTTOM_BORDER:
+		case COMPONENT_RESIZE_CORNER:
 		default:
-		{
 			if (tab && tab->buttonFocus) {
-				float tint = (fFocusFrameColor.IsDark()) ? 0.95 : 1.3;
-				_colors[0] = tint_color(fFocusFrameColor, tint); // borde exterior
-				_colors[1] = tint_color(fFocusFrameColor, B_NO_TINT);
-				_colors[2] = tint_color(fFocusFrameColor, B_NO_TINT);
-				_colors[3] = tint_color(fFocusFrameColor, B_NO_TINT);
-				_colors[4] = tint_color(fFocusFrameColor, 1.05); // borde interior
-				_colors[5] = tint_color(fFocusFrameColor, 1.1); // borde menu 1
-				_colors[6] = tint_color(fFocusTabColor, 1.2); // border tab to be part
+				_colors[0] = tint_color(fFocusFrameColor, B_DARKEN_2_TINT);
+				_colors[1] = tint_color(fFocusFrameColor, B_LIGHTEN_2_TINT);
+				_colors[2] = fFocusFrameColor;
+				_colors[3] = tint_color(fFocusFrameColor,
+					(B_DARKEN_1_TINT + B_NO_TINT) / 2);
+				_colors[4] = tint_color(fFocusFrameColor, B_DARKEN_2_TINT);
+				_colors[5] = tint_color(fFocusFrameColor, B_DARKEN_3_TINT);
 			} else {
-				_colors[0] = tint_color(fNonFocusFrameColor, 1.25); // borde exterior
-				_colors[1] = tint_color(fNonFocusFrameColor, B_NO_TINT);
-				_colors[2] = tint_color(fNonFocusFrameColor, B_NO_TINT);
-				_colors[3] = tint_color(fNonFocusFrameColor, B_NO_TINT);
-				_colors[4] = tint_color(fNonFocusFrameColor, 1.05); // borde interior
-				_colors[5] = tint_color(fFocusFrameColor, 1.3); // borde menu 1
-				_colors[6] = tint_color(fNonFocusTabColor, 1.2); // border tab to be part
+				_colors[0] = tint_color(fNonFocusFrameColor, B_DARKEN_2_TINT);
+				_colors[1] = tint_color(fNonFocusFrameColor, B_LIGHTEN_2_TINT);
+				_colors[2] = fNonFocusFrameColor;
+				_colors[3] = tint_color(fNonFocusFrameColor,
+					(B_DARKEN_1_TINT + B_NO_TINT) / 2);
+				_colors[4] = tint_color(fNonFocusFrameColor, B_DARKEN_2_TINT);
+				_colors[5] = tint_color(fNonFocusFrameColor, B_DARKEN_3_TINT);
 			}
 
 			// for the resize-border highlight dye everything bluish.
 			if (highlight == HIGHLIGHT_RESIZE_BORDER) {
 				for (int32 i = 0; i < 6; i++) {
-					_colors[i].red = 150;
-					_colors[i].green = 150;
+					_colors[i].red = std::max((int)_colors[i].red - 80, 0);
+					_colors[i].green = std::max((int)_colors[i].green - 80, 0);
 					_colors[i].blue = 255;
 				}
 			}
 			break;
-		}
-	}
-
-	// Apply alpha for glass effect
-	for (int i = 0; i < 7; i++) {
-		if (component == COMPONENT_TAB || component == COMPONENT_TOP_BORDER
-			|| component == COMPONENT_LEFT_BORDER || component == COMPONENT_RIGHT_BORDER
-			|| component == COMPONENT_BOTTOM_BORDER || component == COMPONENT_RESIZE_CORNER) {
-			_colors[i].alpha = 200;
-		}
 	}
 }
 
 
 void
-GlassDecorator::UpdateColors(DesktopSettings& settings)
+DefaultDecorator::UpdateColors(DesktopSettings& settings)
 {
 	TabDecorator::UpdateColors(settings);
 }
@@ -262,7 +192,7 @@ GlassDecorator::UpdateColors(DesktopSettings& settings)
 
 
 void
-GlassDecorator::_DrawFrame(BRect rect)
+DefaultDecorator::_DrawFrame(BRect rect)
 {
 	STRACE(("_DrawFrame(%f,%f,%f,%f)\n", rect.left, rect.top,
 		rect.right, rect.bottom));
@@ -280,12 +210,36 @@ GlassDecorator::_DrawFrame(BRect rect)
 #define COLORS_INDEX(i, borderWidth, nominalLimit) int32((float(i) / float(borderWidth)) * nominalLimit)
 
 	// Draw the border frame
-	BRect r = BRect(fTopBorder.LeftTop(), fBottomBorder.RightBottom());
+	BRect border = BRect(fTopBorder.LeftTop(), fBottomBorder.RightBottom());
 	switch ((int)fTopTab->look) {
 		case B_TITLED_WINDOW_LOOK:
 		case B_DOCUMENT_WINDOW_LOOK:
+		case B_MODAL_WINDOW_LOOK:
 		{
+			// top
+			if (rect.Intersects(fTopBorder)) {
+				ComponentColors colors;
+				_GetComponentColors(COMPONENT_TOP_BORDER, colors, fTopTab);
 
+				for (int8 i = 0; i < fBorderWidth; i++) {
+					const int8 colorsIndex = COLORS_INDEX(i, fBorderWidth, 5);
+					fDrawingEngine->StrokeLine(
+						BPoint(border.left + i, border.top + i),
+						BPoint(border.right - i, border.top + i),
+						colors[colorsIndex]);
+				}
+				if (fTitleBarRect.IsValid()) {
+					// grey along the bottom of the tab
+					// (overwrites "white" from frame)
+					const int overdraw = (int)ceilf(fBorderWidth / 5.0f);
+					for (int i = 1; i <= overdraw; i++) {
+						fDrawingEngine->StrokeLine(
+							BPoint(fTitleBarRect.left + 2, fTitleBarRect.bottom + i),
+							BPoint(fTitleBarRect.right - 2, fTitleBarRect.bottom + i),
+							colors[2]);
+					}
+				}
+			}
 			// left
 			if (rect.Intersects(fLeftBorder.InsetByCopy(0, -fBorderWidth))) {
 				ComponentColors colors;
@@ -294,13 +248,10 @@ GlassDecorator::_DrawFrame(BRect rect)
 				for (int8 i = 0; i < fBorderWidth; i++) {
 					const int8 colorsIndex = COLORS_INDEX(i, fBorderWidth, 5);
 					fDrawingEngine->StrokeLine(
-						BPoint(r.left + i, r.top + i),
-						BPoint(r.left + i, r.bottom - i),
+						BPoint(border.left + i, border.top + i),
+						BPoint(border.left + i, border.bottom - i),
 						colors[colorsIndex]);
 				}
-				// redraw line to be part of tab title
-				fDrawingEngine->StrokeLine(BPoint(r.left, r.top),
-					BPoint(r.left, r.top + 4), colors[6]);
 			}
 			// bottom
 			if (rect.Intersects(fBottomBorder)) {
@@ -310,9 +261,9 @@ GlassDecorator::_DrawFrame(BRect rect)
 				for (int8 i = 0; i < fBorderWidth; i++) {
 					const int8 colorsIndex = COLORS_INDEX(i, fBorderWidth, 5);
 					fDrawingEngine->StrokeLine(
-						BPoint(r.left + i, r.bottom - i),
-						BPoint(r.right - i, r.bottom - i),
-						colors[colorsIndex]);
+						BPoint(border.left + i, border.bottom - i),
+						BPoint(border.right - i, border.bottom - i),
+						colors[(4 - colorsIndex) == 4 ? 5 : (4 - colorsIndex)]);
 				}
 			}
 			// right
@@ -323,15 +274,17 @@ GlassDecorator::_DrawFrame(BRect rect)
 				for (int8 i = 0; i < fBorderWidth; i++) {
 					const int8 colorsIndex = COLORS_INDEX(i, fBorderWidth, 5);
 					fDrawingEngine->StrokeLine(
-						BPoint(r.right - i, r.top + i),
-						BPoint(r.right - i, r.bottom - i),
-						colors[colorsIndex]);
+						BPoint(border.right - i, border.top + i),
+						BPoint(border.right - i, border.bottom - i),
+						colors[(4 - colorsIndex) == 4 ? 5 : (4 - colorsIndex)]);
 				}
-				// redraw line to be part of tab title
-				fDrawingEngine->StrokeLine(BPoint(r.right, r.top),
-					BPoint(r.right, r.top + 4),
-					colors[6]);
 			}
+			break;
+		}
+
+		case B_FLOATING_WINDOW_LOOK:
+		case kLeftTitledWindowLook:
+		{
 			// top
 			if (rect.Intersects(fTopBorder)) {
 				ComponentColors colors;
@@ -340,44 +293,9 @@ GlassDecorator::_DrawFrame(BRect rect)
 				for (int8 i = 0; i < fBorderWidth; i++) {
 					const int8 colorsIndex = COLORS_INDEX(i, fBorderWidth, 3);
 					fDrawingEngine->StrokeLine(
-						BPoint(r.left + i, r.top + i),
-						BPoint(r.right - i, r.top + i),
+						BPoint(border.left + i, border.top + i),
+						BPoint(border.right - i, border.top + i),
 						colors[colorsIndex * 2]);
-				}
-				if (fTitleBarRect.IsValid() && fTopTab->look != kLeftTitledWindowLook) {
-					// Complete with gradient effect
-					for (int8 i = 1; i < fBorderWidth; i++) {
-						if (i<fBorderWidth)
-						{
-							fDrawingEngine->StrokeLine(BPoint(r.left + 1, r.top + i),
-								BPoint(r.right - 1, r.top + i), tint_color(colors[3], (i*0.01+1)));
-						}
-						else
-						{
-							fDrawingEngine->StrokeLine(BPoint(r.left + 1, r.top + i),
-								BPoint(r.right - 1, r.top + i), tint_color(colors[3], 1.1));
-						}
-					}
-				}
-			}
-			break;
-		}
-
-		case B_MODAL_WINDOW_LOOK:
-		case B_FLOATING_WINDOW_LOOK:
-		case kLeftTitledWindowLook:
-		{
-			// top
-			if (rect.Intersects(fTopBorder)) {
-				ComponentColors colors;
-				_GetComponentColors(COMPONENT_LEFT_BORDER, colors, fTopTab);
-
-				for (int8 i = 0; i < fBorderWidth; i++) {
-					const int8 colorsIndex = COLORS_INDEX(i, fBorderWidth, 3);
-					fDrawingEngine->StrokeLine(
-						BPoint(r.left + i, r.top + i),
-						BPoint(r.right - i, r.top + i),
-						colors[colorsIndex]);
 				}
 				if (fTitleBarRect.IsValid() && fTopTab->look != kLeftTitledWindowLook) {
 					// grey along the bottom of the tab
@@ -387,7 +305,7 @@ GlassDecorator::_DrawFrame(BRect rect)
 						fDrawingEngine->StrokeLine(
 							BPoint(fTitleBarRect.left + 2, fTitleBarRect.bottom + i),
 							BPoint(fTitleBarRect.right - 2, fTitleBarRect.bottom + i),
-							colors[1]);
+							colors[2]);
 					}
 				}
 			}
@@ -399,9 +317,9 @@ GlassDecorator::_DrawFrame(BRect rect)
 				for (int8 i = 0; i < fBorderWidth; i++) {
 					const int8 colorsIndex = COLORS_INDEX(i, fBorderWidth, 3);
 					fDrawingEngine->StrokeLine(
-						BPoint(r.left + i, r.top + i),
-						BPoint(r.left + i, r.bottom - i),
-						colors[colorsIndex]);
+						BPoint(border.left + i, border.top + i),
+						BPoint(border.left + i, border.bottom - i),
+						colors[colorsIndex * 2]);
 				}
 				if (fTopTab->look == kLeftTitledWindowLook
 					&& fTitleBarRect.IsValid()) {
@@ -411,7 +329,7 @@ GlassDecorator::_DrawFrame(BRect rect)
 						BPoint(fTitleBarRect.right + 1,
 							fTitleBarRect.top + 2),
 						BPoint(fTitleBarRect.right + 1,
-							fTitleBarRect.bottom - 2), colors[1]);
+							fTitleBarRect.bottom - 2), colors[2]);
 				}
 			}
 			// bottom
@@ -422,9 +340,9 @@ GlassDecorator::_DrawFrame(BRect rect)
 				for (int8 i = 0; i < fBorderWidth; i++) {
 					const int8 colorsIndex = COLORS_INDEX(i, fBorderWidth, 3);
 					fDrawingEngine->StrokeLine(
-						BPoint(r.left + i, r.bottom - i),
-						BPoint(r.right - i, r.bottom - i),
-						colors[colorsIndex]);
+						BPoint(border.left + i, border.bottom - i),
+						BPoint(border.right - i, border.bottom - i),
+						colors[(2 - colorsIndex) == 2 ? 5 : (2 - colorsIndex) * 2]);
 				}
 			}
 			// right
@@ -435,9 +353,9 @@ GlassDecorator::_DrawFrame(BRect rect)
 				for (int8 i = 0; i < fBorderWidth; i++) {
 					const int8 colorsIndex = COLORS_INDEX(i, fBorderWidth, 3);
 					fDrawingEngine->StrokeLine(
-						BPoint(r.right - i, r.top + i),
-						BPoint(r.right - i, r.bottom - i),
-						colors[colorsIndex]);
+						BPoint(border.right - i, border.top + i),
+						BPoint(border.right - i, border.bottom - i),
+						colors[(2 - colorsIndex) == 2 ? 5 : (2 - colorsIndex) * 2]);
 				}
 			}
 			break;
@@ -449,7 +367,7 @@ GlassDecorator::_DrawFrame(BRect rect)
 			ComponentColors colors;
 			_GetComponentColors(COMPONENT_LEFT_BORDER, colors, fTopTab);
 
-			fDrawingEngine->StrokeRect(r, colors[5]);
+			fDrawingEngine->StrokeRect(border, colors[5]);
 			break;
 		}
 
@@ -460,8 +378,6 @@ GlassDecorator::_DrawFrame(BRect rect)
 
 	// Draw the resize knob if we're supposed to
 	if (!(fTopTab->flags & B_NOT_RESIZABLE)) {
-		r = fResizeRect;
-
 		ComponentColors colors;
 		_GetComponentColors(COMPONENT_RESIZE_CORNER, colors, fTopTab);
 
@@ -469,11 +385,11 @@ GlassDecorator::_DrawFrame(BRect rect)
 			case B_DOCUMENT_WINDOW_LOOK:
 			{
 				if (fOutlinesDelta.x != 0 || fOutlinesDelta.y != 0) {
-					r.Set(fFrame.right - 13, fFrame.bottom - 13,
+					border.Set(fFrame.right - 13, fFrame.bottom - 13,
 						fFrame.right + 3, fFrame.bottom + 3);
 
-					if (rect.Intersects(r))
-						_DrawResizeKnob(r, false, colors);
+					if (rect.Intersects(border))
+						_DrawResizeKnob(border, false, colors);
 				}
 
 				if (rect.Intersects(fResizeRect)) {
@@ -508,7 +424,6 @@ GlassDecorator::_DrawFrame(BRect rect)
 					BPoint(fRightBorder.right - fBorderResizeLength,
 						fBottomBorder.bottom - 1),
 					colors[0]);
-
 				break;
 			}
 
@@ -521,11 +436,11 @@ GlassDecorator::_DrawFrame(BRect rect)
 
 
 void
-GlassDecorator::_DrawResizeKnob(BRect rect, bool full,
+DefaultDecorator::_DrawResizeKnob(BRect rect, bool full,
 	const ComponentColors& colors)
 {
-	float x = rect.right -= 4;
-	float y = rect.bottom -= 4;
+	float x = rect.right -= 3;
+	float y = rect.bottom -= 3;
 
 	BGradientLinear gradient;
 	gradient.SetStart(rect.LeftTop());
@@ -536,22 +451,27 @@ GlassDecorator::_DrawResizeKnob(BRect rect, bool full,
 	fDrawingEngine->FillRect(rect, gradient);
 
 	BPoint offset1(rect.Width(), rect.Height()),
-		offset2(rect.Width() - 2, rect.Height() - 1);
+		offset2(rect.Width() - 1, rect.Height() - 1);
 	fDrawingEngine->StrokeLine(BPoint(x, y) - offset1,
-		BPoint(x - offset1.x, y - 1), tint_color(colors[1], 1.05));
+		BPoint(x - offset1.x, y - 2), colors[0]);
+	fDrawingEngine->StrokeLine(BPoint(x, y) - offset2,
+		BPoint(x - offset2.x, y - 1), colors[1]);
 	fDrawingEngine->StrokeLine(BPoint(x, y) - offset1,
-		BPoint(x - 1, y - offset1.y), tint_color(colors[1], 1.05));
-
+		BPoint(x - 2, y - offset1.y), colors[0]);
+	fDrawingEngine->StrokeLine(BPoint(x, y) - offset2,
+		BPoint(x - 1, y - offset2.y), colors[1]);
 
 	if (!full)
 		return;
 
+	static const rgb_color kWhite
+		= (rgb_color){ 255, 255, 255, 255 };
 	for (int8 i = 1; i <= 4; i++) {
 		for (int8 j = 1; j <= i; j++) {
 			BPoint pt1(x - (3 * j) + 1, y - (3 * (5 - i)) + 1);
 			BPoint pt2(x - (3 * j) + 2, y - (3 * (5 - i)) + 2);
-			fDrawingEngine->StrokePoint(pt1, tint_color(colors[1], 1.6));
-			fDrawingEngine->StrokePoint(pt2, tint_color(colors[1], 0.6));
+			fDrawingEngine->StrokePoint(pt1, colors[0]);
+			fDrawingEngine->StrokePoint(pt2, kWhite);
 		}
 	}
 }
@@ -566,7 +486,7 @@ GlassDecorator::_DrawResizeKnob(BRect rect, bool full,
 	\param rect The area of the \a tab to update.
 */
 void
-GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
+DefaultDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
 {
 	STRACE(("_DrawTab(%.1f,%.1f,%.1f,%.1f)\n",
 		invalid.left, invalid.top, invalid.right, invalid.bottom));
@@ -579,122 +499,59 @@ GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
 	ComponentColors colors;
 	_GetComponentColors(COMPONENT_TAB, colors, tab);
 
-	drawing_mode oldMode;
-	fDrawingEngine->SetDrawingMode(B_OP_ALPHA, oldMode);
-
-	bool roundLeft = (fTabList.IndexOf(tab) == 0);
-	bool roundRight = (fTabList.IndexOf(tab) == fTabList.CountItems() - 1);
-
-	float leftOffset = roundLeft ? 3.0f : 0.0f;
-	float rightOffset = roundRight ? 3.0f : 0.0f;
-
-	if (tab && tab->buttonFocus) {
-		// outer frame
-		fDrawingEngine->StrokeLine(BPoint(tabRect.left, tabRect.top + leftOffset), tabRect.LeftBottom(),
+	// outer frame
+	fDrawingEngine->StrokeLine(tabRect.LeftTop(), tabRect.LeftBottom(),
+		colors[COLOR_TAB_FRAME_LIGHT]);
+	fDrawingEngine->StrokeLine(tabRect.LeftTop(), tabRect.RightTop(),
+		colors[COLOR_TAB_FRAME_LIGHT]);
+	if (tab->look != kLeftTitledWindowLook) {
+		fDrawingEngine->StrokeLine(tabRect.RightTop(), tabRect.RightBottom(),
 			colors[COLOR_TAB_FRAME_DARK]);
-		fDrawingEngine->StrokeLine(BPoint(tabRect.left + leftOffset, tabRect.top), BPoint(tabRect.right - rightOffset, tabRect.top),
-			colors[COLOR_TAB_FRAME_DARK]);
-		if (roundLeft) {
-			fDrawingEngine->StrokeLine(BPoint(tabRect.left + 1, tabRect.top + 2), BPoint(tabRect.left + 2, tabRect.top + 1), colors[COLOR_TAB_FRAME_DARK]);
-		}
-		if (roundRight) {
-			fDrawingEngine->StrokeLine(BPoint(tabRect.right - 2, tabRect.top + 1), BPoint(tabRect.right - 1, tabRect.top + 2), colors[COLOR_TAB_FRAME_DARK]);
-		}
-		
-		if (tab->look != kLeftTitledWindowLook) {
-			fDrawingEngine->StrokeLine(BPoint(tabRect.right, tabRect.top + rightOffset), tabRect.RightBottom(),
-				colors[COLOR_TAB_FRAME_DARK]);
-		} else {
-			fDrawingEngine->StrokeLine(tabRect.LeftBottom(),
-				tabRect.RightBottom(), fFocusFrameColor);
-		}
 	} else {
-		// outer frame
-		fDrawingEngine->StrokeLine(BPoint(tabRect.left, tabRect.top + leftOffset), BPoint(tabRect.left, tabRect.bottom - 1),
-			colors[COLOR_TAB_FRAME_DARK]);
-		fDrawingEngine->StrokeLine(BPoint(tabRect.left + leftOffset, tabRect.top), BPoint(tabRect.right - rightOffset, tabRect.top),
-			colors[COLOR_TAB_FRAME_DARK]);
-		if (roundLeft) {
-			fDrawingEngine->StrokeLine(BPoint(tabRect.left + 1, tabRect.top + 2), BPoint(tabRect.left + 2, tabRect.top + 1), colors[COLOR_TAB_FRAME_DARK]);
-		}
-		if (roundRight) {
-			fDrawingEngine->StrokeLine(BPoint(tabRect.right - 2, tabRect.top + 1), BPoint(tabRect.right - 1, tabRect.top + 2), colors[COLOR_TAB_FRAME_DARK]);
-		}
-
-		if (tab->look != kLeftTitledWindowLook) {
-			fDrawingEngine->StrokeLine(BPoint(tabRect.right, tabRect.top + rightOffset), BPoint(tabRect.right, tabRect.bottom - 1),
-				colors[COLOR_TAB_FRAME_DARK]);
-		} else {
-			fDrawingEngine->StrokeLine(tabRect.LeftBottom(),
-				tabRect.RightBottom(), fFocusFrameColor);
-		}
+		fDrawingEngine->StrokeLine(tabRect.LeftBottom(),
+			tabRect.RightBottom(), colors[COLOR_TAB_FRAME_DARK]);
 	}
 
-	float tabBottom = tabRect.bottom;
+	float tabBotton = tabRect.bottom;
 	if (fTopTab != tab)
-		tabBottom -= 1;
+		tabBotton -= 1;
 
 	// bevel
-	fDrawingEngine->StrokeLine(BPoint(tabRect.left + 1, tabRect.top + leftOffset),
+	fDrawingEngine->StrokeLine(BPoint(tabRect.left + 1, tabRect.top + 1),
 		BPoint(tabRect.left + 1,
-			tabBottom - (tab->look == kLeftTitledWindowLook ? 1 : 0)),
-		colors[COLOR_TAB]);
-	fDrawingEngine->StrokeLine(BPoint(tabRect.left + 1 + leftOffset, tabRect.top + 1),
-		BPoint(tabRect.right - 1 - rightOffset,
+			tabBotton - (tab->look == kLeftTitledWindowLook ? 1 : 0)),
+		colors[COLOR_TAB_BEVEL]);
+	fDrawingEngine->StrokeLine(BPoint(tabRect.left + 1, tabRect.top + 1),
+		BPoint(tabRect.right - (tab->look == kLeftTitledWindowLook ? 0 : 1),
 			tabRect.top + 1),
-		tint_color(colors[COLOR_TAB], 0.9));
-
-	if (roundLeft) {
-		fDrawingEngine->StrokePoint(BPoint(tabRect.left + 2, tabRect.top + 2), colors[COLOR_TAB]);
-	}
-	if (roundRight) {
-		fDrawingEngine->StrokePoint(BPoint(tabRect.right - 2, tabRect.top + 2), colors[COLOR_TAB]);
-	}
+		colors[COLOR_TAB_BEVEL]);
 
 	if (tab->look != kLeftTitledWindowLook) {
-		fDrawingEngine->StrokeLine(BPoint(tabRect.right - 1, tabRect.top + rightOffset),
-			BPoint(tabRect.right - 1, tabBottom),
-			colors[COLOR_TAB]);
+		fDrawingEngine->StrokeLine(BPoint(tabRect.right - 1, tabRect.top + 2),
+			BPoint(tabRect.right - 1, tabBotton),
+			colors[COLOR_TAB_SHADOW]);
 	} else {
 		fDrawingEngine->StrokeLine(
 			BPoint(tabRect.left + 2, tabRect.bottom - 1),
 			BPoint(tabRect.right, tabRect.bottom - 1),
-			colors[COLOR_TAB]);
+			colors[COLOR_TAB_SHADOW]);
 	}
 
 	// fill
 	BGradientLinear gradient;
 	gradient.SetStart(tabRect.LeftTop());
-	if (tab && tab->buttonFocus) {
-		gradient.AddColor(tint_color(colors[COLOR_TAB], 0.6), 0);
-		gradient.AddColor(tint_color(colors[COLOR_TAB], 1.0), 200);
-	} else {
-		gradient.AddColor(tint_color(colors[COLOR_TAB], 0.9), 0);
-		gradient.AddColor(tint_color(colors[COLOR_TAB], 1.0), 150);
-	}
+	gradient.AddColor(colors[COLOR_TAB_LIGHT], 0);
+	gradient.AddColor(colors[COLOR_TAB], 255);
 
 	if (tab->look != kLeftTitledWindowLook) {
 		gradient.SetEnd(tabRect.LeftBottom());
 		fDrawingEngine->FillRect(BRect(tabRect.left + 2, tabRect.top + 2,
-			tabRect.right - 2, tabBottom), gradient);
+			tabRect.right - 2, tabBotton), gradient);
 	} else {
 		gradient.SetEnd(tabRect.RightTop());
 		fDrawingEngine->FillRect(BRect(tabRect.left + 2, tabRect.top + 2,
 			tabRect.right, tabRect.bottom - 2), gradient);
 	}
-
-	if (roundLeft) {
-		fDrawingEngine->StrokeLine(BPoint(tabRect.left, tabRect.top), BPoint(tabRect.left + 2, tabRect.top), B_TRANSPARENT_COLOR);
-		fDrawingEngine->StrokeLine(BPoint(tabRect.left, tabRect.top + 1), BPoint(tabRect.left + 1, tabRect.top + 1), B_TRANSPARENT_COLOR);
-		fDrawingEngine->StrokePoint(BPoint(tabRect.left, tabRect.top + 2), B_TRANSPARENT_COLOR);
-	}
-	if (roundRight) {
-		fDrawingEngine->StrokeLine(BPoint(tabRect.right - 2, tabRect.top), BPoint(tabRect.right, tabRect.top), B_TRANSPARENT_COLOR);
-		fDrawingEngine->StrokeLine(BPoint(tabRect.right - 1, tabRect.top + 1), BPoint(tabRect.right, tabRect.top + 1), B_TRANSPARENT_COLOR);
-		fDrawingEngine->StrokePoint(BPoint(tabRect.right, tabRect.top + 2), B_TRANSPARENT_COLOR);
-	}
-
-	fDrawingEngine->SetDrawingMode(oldMode);
 
 	_DrawTitle(tab, tabRect);
 
@@ -713,7 +570,7 @@ GlassDecorator::_DrawTab(Decorator::Tab* tab, BRect invalid)
 	\param rect area of the title to update.
 */
 void
-GlassDecorator::_DrawTitle(Decorator::Tab* _tab, BRect rect)
+DefaultDecorator::_DrawTitle(Decorator::Tab* _tab, BRect rect)
 {
 	STRACE(("_DrawTitle(%f,%f,%f,%f)\n", rect.left, rect.top, rect.right,
 		rect.bottom));
@@ -767,7 +624,7 @@ GlassDecorator::_DrawTitle(Decorator::Tab* _tab, BRect rect)
 	\param rect The area of the button to update.
 */
 void
-GlassDecorator::_DrawClose(Decorator::Tab* _tab, bool direct, BRect rect)
+DefaultDecorator::_DrawClose(Decorator::Tab* _tab, bool direct, BRect rect)
 {
 	STRACE(("_DrawClose(%f,%f,%f,%f)\n", rect.left, rect.top, rect.right,
 		rect.bottom));
@@ -796,7 +653,7 @@ GlassDecorator::_DrawClose(Decorator::Tab* _tab, bool direct, BRect rect)
 	\param rect The area of the button to update.
 */
 void
-GlassDecorator::_DrawZoom(Decorator::Tab* _tab, bool direct, BRect rect)
+DefaultDecorator::_DrawZoom(Decorator::Tab* _tab, bool direct, BRect rect)
 {
 	STRACE(("_DrawZoom(%f,%f,%f,%f)\n", rect.left, rect.top, rect.right,
 		rect.bottom));
@@ -818,7 +675,7 @@ GlassDecorator::_DrawZoom(Decorator::Tab* _tab, bool direct, BRect rect)
 
 
 void
-GlassDecorator::_DrawMinimize(Decorator::Tab* tab, bool direct, BRect rect)
+DefaultDecorator::_DrawMinimize(Decorator::Tab* tab, bool direct, BRect rect)
 {
 	// This decorator doesn't have this button
 }
@@ -828,7 +685,7 @@ GlassDecorator::_DrawMinimize(Decorator::Tab* tab, bool direct, BRect rect)
 
 
 void
-GlassDecorator::_DrawButtonBitmap(ServerBitmap* bitmap, bool direct,
+DefaultDecorator::_DrawButtonBitmap(ServerBitmap* bitmap, bool direct,
 	BRect rect)
 {
 	if (bitmap == NULL)
@@ -851,38 +708,37 @@ GlassDecorator::_DrawButtonBitmap(ServerBitmap* bitmap, bool direct,
 	\param colors A button color array of the colors to be used.
 */
 void
-GlassDecorator::_DrawBlendedRect(DrawingEngine* engine, const BRect rect,
+DefaultDecorator::_DrawBlendedRect(DrawingEngine* engine, const BRect rect,
 	bool down, const ComponentColors& colors)
 {
-	rgb_color darkColor = tint_color(colors[COLOR_BUTTON], 1.3);
-	rgb_color lightColor = tint_color(colors[COLOR_BUTTON], 0.7);
-	rgb_color fillColor = colors[COLOR_BUTTON];
-	fillColor.alpha = 150; // semi-transparent
-
+	// figure out which colors to use
+	rgb_color startColor, endColor;
 	if (down) {
-		darkColor = tint_color(colors[COLOR_BUTTON], 1.45);
-		lightColor = tint_color(colors[COLOR_BUTTON], 0.85);
-		fillColor = tint_color(colors[COLOR_BUTTON], 1.1);
-		fillColor.alpha = 200;
+		startColor = tint_color(colors[COLOR_BUTTON], B_DARKEN_1_TINT);
+		endColor = colors[COLOR_BUTTON_LIGHT];
+	} else {
+		startColor = tint_color(colors[COLOR_BUTTON], B_LIGHTEN_MAX_TINT);
+		endColor = colors[COLOR_BUTTON];
 	}
 
-	drawing_mode oldMode;
-	engine->SetDrawingMode(B_OP_ALPHA, oldMode);
+	// fill
+	BRect fillRect(rect.InsetByCopy(1.0f, 1.0f));
 
-	engine->FillRect(rect, fillColor);
+	BGradientLinear gradient;
+	gradient.SetStart(fillRect.LeftTop());
+	gradient.SetEnd(fillRect.RightBottom());
+	gradient.AddColor(startColor, 0);
+	gradient.AddColor(endColor, 255);
 
-	// outline engraved (inset bevel)
-	engine->StrokeLine(rect.LeftTop(), rect.RightTop(), darkColor);
-	engine->StrokeLine(rect.LeftTop(), rect.LeftBottom(), darkColor);
-	engine->StrokeLine(BPoint(rect.right, rect.top + 1), rect.RightBottom(), lightColor);
-	engine->StrokeLine(BPoint(rect.left + 1, rect.bottom), rect.RightBottom(), lightColor);
+	engine->FillRect(fillRect, gradient);
 
-	engine->SetDrawingMode(oldMode);
+	// outline
+	engine->StrokeRect(rect, tint_color(colors[COLOR_BUTTON], B_DARKEN_2_TINT));
 }
 
 
 ServerBitmap*
-GlassDecorator::_GetBitmapForButton(Decorator::Tab* tab, Component item,
+DefaultDecorator::_GetBitmapForButton(Decorator::Tab* tab, Component item,
 	bool down, int32 width, int32 height)
 {
 	// TODO: the list of shared bitmaps is never freed
@@ -930,15 +786,12 @@ GlassDecorator::_GetBitmapForButton(Decorator::Tab* tab, Component item,
 
 	BRect rect(0, 0, width - 1, height - 1);
 
-	STRACE(("GlassDecorator creating bitmap for %s %s at size %ldx%ld\n",
+	STRACE(("DefaultDecorator creating bitmap for %s %s at size %ldx%ld\n",
 		item == COMPONENT_CLOSE_BUTTON ? "close" : "zoom",
 		down ? "down" : "up", width, height));
 	switch (item) {
 		case COMPONENT_CLOSE_BUTTON:
-			if (tab && tab->buttonFocus)
-				_DrawBlendedRect(sBitmapDrawingEngine, rect, down, colors);
-			else
-				_DrawBlendedRect(sBitmapDrawingEngine, rect, true, colors);
+			_DrawBlendedRect(sBitmapDrawingEngine, rect, down, colors);
 			break;
 
 		case COMPONENT_ZOOM_BUTTON:
@@ -950,19 +803,13 @@ GlassDecorator::_GetBitmapForButton(Decorator::Tab* tab, Component item,
 			BRect zoomRect(rect);
 			zoomRect.left += inset;
 			zoomRect.top += inset;
-			if (tab && tab->buttonFocus)
-				_DrawBlendedRect(sBitmapDrawingEngine, zoomRect, down, colors);
-			else
-				_DrawBlendedRect(sBitmapDrawingEngine, zoomRect, true, colors);
+			_DrawBlendedRect(sBitmapDrawingEngine, zoomRect, down, colors);
 
 			inset = floorf(width / 2.1);
 			zoomRect = rect;
 			zoomRect.right -= inset;
 			zoomRect.bottom -= inset;
-			if (tab && tab->buttonFocus)
-				_DrawBlendedRect(sBitmapDrawingEngine, zoomRect, down, colors);
-			else
-				_DrawBlendedRect(sBitmapDrawingEngine, zoomRect, true, colors);
+			_DrawBlendedRect(sBitmapDrawingEngine, zoomRect, down, colors);
 			break;
 		}
 
@@ -997,7 +844,7 @@ GlassDecorator::_GetBitmapForButton(Decorator::Tab* tab, Component item,
 
 
 void
-GlassDecorator::_GetComponentColors(Component component,
+DefaultDecorator::_GetComponentColors(Component component,
 	ComponentColors _colors, Decorator::Tab* tab)
 {
 	// get the highlight for our component
@@ -1031,10 +878,3 @@ GlassDecorator::_GetComponentColors(Component component,
 
 	return GetComponentColors(component, RegionHighlight(region), _colors, tab);
 }
-
-
-extern "C" DecorAddOn* (instantiate_decor_addon)(image_id id, const char* name)
-{
-	return new (std::nothrow)GlassDecorAddOn(id, name);
-}
-

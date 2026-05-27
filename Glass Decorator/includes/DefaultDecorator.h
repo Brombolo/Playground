@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2015 Haiku, Inc.
+ * Copyright 2001-2020 Haiku, Inc.
  * Distributed under the terms of the MIT License.
  *
  * Authors:
@@ -10,34 +10,26 @@
  *		John Scipione, jscipione@gmail.com
  *		Ingo Weinhold, ingo_weinhold@gmx.de
  *		Clemens Zeidler, haiku@clemens-zeidler.de
- *		Joseph Groover <looncraz@looncraz.net>
- *		Brombolo
+ *		Joseph Groover, looncraz@looncraz.net
+ *		Tri-Edge AI
+ *		Jacob Secunda, secundja@gmail.com
  */
-#ifndef GLASS_DECORATOR_H
-#define GLASS_DECORATOR_H
+#ifndef DEFAULT_DECORATOR_H
+#define DEFAULT_DECORATOR_H
 
 
 #include "TabDecorator.h"
-#include "DecorManager.h"
 
 
 class Desktop;
 class ServerBitmap;
 
-class GlassDecorAddOn : public DecorAddOn {
-public:
-								GlassDecorAddOn(image_id id, const char* name);
 
-protected:
-	virtual Decorator*			_AllocateDecorator(DesktopSettings& settings,
-									BRect rect, Desktop* desktop);
-};
-
-class GlassDecorator: public TabDecorator {
+class DefaultDecorator: public TabDecorator {
 public:
-								GlassDecorator(DesktopSettings& settings,
+								DefaultDecorator(DesktopSettings& settings,
 									BRect frame, Desktop* desktop);
-	virtual						~GlassDecorator();
+	virtual						~DefaultDecorator();
 
 	virtual	void				GetComponentColors(Component component,
 									uint8 highlight, ComponentColors _colors,
@@ -75,4 +67,4 @@ private:
 };
 
 
-#endif	// GLASS_DECORATOR_H
+#endif	// DEFAULT_DECORATOR_H
